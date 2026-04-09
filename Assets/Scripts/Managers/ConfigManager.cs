@@ -61,12 +61,12 @@ public class ConfigManager
     public Config currentConfig;
 
     private Dictionary<string, FishSetting> fishSettingsDictionary;
-    private Dictionary<string, TrashSetting> trashSettingsDictioanry;
+    private Dictionary<string, TrashSetting> trashSettingsDictionary;
 
     public void Init()
     {
         fishSettingsDictionary = new Dictionary<string, FishSetting>();
-        trashSettingsDictioanry = new Dictionary<string, TrashSetting>();
+        trashSettingsDictionary = new Dictionary<string, TrashSetting>();
 
         LoadConfig();
     }
@@ -74,16 +74,14 @@ public class ConfigManager
     public void LoadConfig()
     {
         string rootPath = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-        string jsonPath = Path.Combine(rootPath, "config.json");
+        string configPath = Path.Combine(rootPath, "config.json");
 
-        Debug.Log("Path Config: " + jsonPath);
-
-        if (File.Exists(jsonPath))
+        if (File.Exists(configPath))
         {
-            string jsonString = File.ReadAllText(jsonPath);
+            string jsonString = File.ReadAllText(configPath);
             currentConfig = JsonUtility.FromJson<Config>(jsonString);
             
-            Debug.Log("Config Berhasil Di-Update");
+            Debug.Log("Config Berhasil Di-Load");
         }
         else
         {
@@ -92,20 +90,31 @@ public class ConfigManager
             currentConfig = new Config();
             
             string defaultJson = JsonUtility.ToJson(currentConfig, true);
-            string directoryPath = Path.GetDirectoryName(jsonPath);
+            string directoryPath = Path.GetDirectoryName(configPath);
 
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
 
-            File.WriteAllText(jsonPath, defaultJson);
+            File.WriteAllText(configPath, defaultJson);
             
-            Debug.Log("Config default berhasil dibuat di: " + jsonPath);
+            Debug.Log("Config default berhasil dibuat di: " + configPath);
         }
 
         PrepareFishSettings();
         PrepareTrashSettings();
+    }
+
+    public void SaveConfig()
+    {
+        string rootPath = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+        string configPath = Path.Combine(rootPath, "config.json");
+
+        string jsonString = JsonUtility.ToJson(currentConfig, true);
+        File.WriteAllText(configPath, jsonString);
+        
+        Debug.Log("<color=green>Config JSON berhasil di-update!</color>");
     }
 
     private void PrepareFishSettings()
@@ -123,14 +132,14 @@ public class ConfigManager
 
     private void PrepareTrashSettings()
     {
-        trashSettingsDictioanry.Clear();
+        trashSettingsDictionary.Clear();
 
         List<TrashSetting> currentTrashSettings = currentConfig.trashSettings;
 
         foreach (TrashSetting trashSettings in currentTrashSettings)
         {
             string trashName = trashSettings.trashName.ToUpper();
-            trashSettingsDictioanry[trashName] = trashSettings;
+            trashSettingsDictionary[trashName] = trashSettings;
         }
     }
 
@@ -144,20 +153,36 @@ public class ConfigManager
         }
         
         Debug.LogWarning($"Data untuk {name} tidak ketemu di config!");
-        return null; 
+
+        FishSetting newSetting = new FishSetting();
+        newSetting.fishName = fishName;
+        currentConfig.fishSettings.Add(newSetting);
+        fishSettingsDictionary.Add(fishName, newSetting);
+
+        SaveConfig();
+
+        return newSetting;
     }
 
     public TrashSetting GetTrashSettings(string name)
     {
         string trashName = name.ToUpper();
 
-        if (trashSettingsDictioanry.TryGetValue(trashName, out TrashSetting trashSetting))
+        if (trashSettingsDictionary.TryGetValue(trashName, out TrashSetting trashSetting))
         {
             return trashSetting;
         }
 
         Debug.LogWarning($"Data untuk {name} tidak ketemu di config!");
-        return null; 
+
+        TrashSetting newSetting = new TrashSetting();
+        newSetting.trashName = trashName;
+        currentConfig.trashSettings.Add(newSetting);
+        trashSettingsDictionary.Add(trashName, newSetting);
+
+        SaveConfig();
+
+        return newSetting; 
     }
 }
 
