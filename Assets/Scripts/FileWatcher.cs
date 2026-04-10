@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.IO;
 using System.Collections.Concurrent;
 using System.Collections;
@@ -6,67 +7,106 @@ using UnityEngine.Networking;
 
 public class FileWatcher : MonoBehaviour
 {
-    private string filePath;
-    private ConcurrentQueue<string> fileQueue;
+    private string spawnablesFolderPath;
+    private string configFolderPath;
+    private ConcurrentQueue<Action> actionsQueue;
 
-    private FileSystemWatcher fileSystemWatcher;
+    private FileSystemWatcher spawnablesFileSystemWatcher;
+    private FileSystemWatcher configFileSystemWatcher;
+
     private SpawnManager spawnManager;
+    private ConfigManager configManager;
 
     void Start() 
     {
-        fileQueue = new ConcurrentQueue<string>();
-        filePath = Path.Combine(Application.dataPath, "../Spawnables");
+        actionsQueue = new ConcurrentQueue<Action>();
+        spawnablesFolderPath = Path.Combine(Application.dataPath, "../Spawnables");
+        configFolderPath = Path.Combine(Application.dataPath, "..");
 
         spawnManager = SpawnManager.instance;
+        configManager = GameManager.instance.configManager;
 
         LoadFiles();
         
-        if (!Directory.Exists(filePath))
+        if (!Directory.Exists(spawnablesFolderPath))
         {
-            Directory.CreateDirectory(filePath);
+            Directory.CreateDirectory(spawnablesFolderPath);
         } 
-            
-        fileSystemWatcher = new FileSystemWatcher();
-        fileSystemWatcher.Path = filePath;
-        fileSystemWatcher.Filter = "*.png"; 
-        fileSystemWatcher.Created += OnFileCreated;
-        fileSystemWatcher.EnableRaisingEvents = true;
+
+        if (!Directory.Exists(configFolderPath))
+        {
+            Directory.CreateDirectory(configFolderPath);
+        }
+        
+        //Spawnables
+        spawnablesFileSystemWatcher = new FileSystemWatcher();
+        spawnablesFileSystemWatcher.Path = spawnablesFolderPath;
+        spawnablesFileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName;
+        spawnablesFileSystemWatcher.Filter = "*.png"; 
+        spawnablesFileSystemWatcher.Created += OnSpawnablesFileCreated;
+        spawnablesFileSystemWatcher.EnableRaisingEvents = true;
+
+        //Config
+        configFileSystemWatcher = new FileSystemWatcher();
+        configFileSystemWatcher.Path = configFolderPath;
+        configFileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName;
+        configFileSystemWatcher.Filter = "config.json";
+        configFileSystemWatcher.Changed += OnConfigFileChanged;
+        configFileSystemWatcher.EnableRaisingEvents = true;
     }
 
     void Update() 
     {
-        if (fileQueue.TryDequeue(out string path)) 
+        if (actionsQueue.TryDequeue(out Action action)) 
         {
-            StartCoroutine(LoadTexture(path));
+            action?.Invoke();
         }
     }
 
     void OnDisable()
     {
-        if (fileSystemWatcher != null)
+        if (spawnablesFileSystemWatcher != null)
         {
-            fileSystemWatcher.EnableRaisingEvents = false;
-            fileSystemWatcher.Dispose();
+            spawnablesFileSystemWatcher.EnableRaisingEvents = false;
+            spawnablesFileSystemWatcher.Dispose();
+        }
+
+        if (configFileSystemWatcher != null)
+        {
+            configFileSystemWatcher.EnableRaisingEvents = false;
+            configFileSystemWatcher.Dispose();
         }
     }
 
-    private void OnFileCreated(object sender, FileSystemEventArgs e)
+    private void OnSpawnablesFileCreated(object sender, FileSystemEventArgs e)
     {
-        fileQueue.Enqueue(e.FullPath);
+        actionsQueue.Enqueue(() =>
+        {
+            StartCoroutine(LoadTexture(e.FullPath)); 
+        });
+    }
+
+    private void OnConfigFileChanged(object sender, FileSystemEventArgs e)
+    {
+        actionsQueue.Enqueue(() =>
+        {
+            configManager.LoadConfig();
+            spawnManager.RefreshAllObjects();
+        });
     }
 
     private void LoadFiles()
     {
-        if (Directory.Exists(filePath))
+        if (Directory.Exists(spawnablesFolderPath))
         {
-            string[] files = Directory.GetFiles(filePath, "*.png");
+            string[] files = Directory.GetFiles(spawnablesFolderPath, "*.png");
 
             foreach (string file in files)
             {
                 StartCoroutine(LoadTexture(file));
             }
         }
-}
+    }
 
     IEnumerator LoadTexture(string path) 
     {
@@ -99,12 +139,12 @@ public class FileWatcher : MonoBehaviour
 
     public void OpenSpawnablesFolder()
     {
-        if (!Directory.Exists(filePath))
+        if (!Directory.Exists(spawnablesFolderPath))
         {
-            Directory.CreateDirectory(filePath);
+            Directory.CreateDirectory(spawnablesFolderPath);
         }
 
-        string winPath = filePath.Replace("/", "\\");
+        string winPath = spawnablesFolderPath.Replace("/", "\\");
         
         System.Diagnostics.Process.Start("explorer.exe", winPath);
     }
