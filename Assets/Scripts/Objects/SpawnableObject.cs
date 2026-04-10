@@ -5,6 +5,7 @@ public abstract class SpawnableObject<T> : MonoBehaviour where T : class
 {
     [SerializeField] private SpriteRenderer spriteRenderer;
     private IObjectPool<T> pool;
+    protected string objName;
 
     public void SetPool(IObjectPool<T> pool)
     {
@@ -22,5 +23,10 @@ public abstract class SpawnableObject<T> : MonoBehaviour where T : class
     public void ReturnToPool()
     {
         pool.Release(this as T);
+    }
+
+    public void SetName(string name)
+    {
+        objName = name;
     }
 }

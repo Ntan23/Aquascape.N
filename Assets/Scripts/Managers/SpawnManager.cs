@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -12,6 +13,9 @@ public class SpawnManager : MonoBehaviour
 
     private IObjectPool<Fish> fishPool;
     private IObjectPool<Trash> trashPool;
+
+    private Dictionary<string, List<Fish>> activeFishes;
+    private Dictionary<string, List<Trash>> activeTrashes;
 
     private GameManager gameManager;
     private ConfigManager configManager;
@@ -51,6 +55,9 @@ public class SpawnManager : MonoBehaviour
 
     void Start()
     {
+        activeFishes = new Dictionary<string, List<Fish>>();
+        activeTrashes = new Dictionary<string, List<Trash>>();
+        
         gameManager = GameManager.instance;
         configManager = gameManager.configManager;
     }
@@ -64,8 +71,16 @@ public class SpawnManager : MonoBehaviour
         string fileName = sprite.name;
         string fishName = GetObjectName(fileName);
 
-        FishSetting fishSetting = configManager.GetFishSettings(fishName);
+        newFish.SetName(fishName);
+
+        if (!activeFishes.ContainsKey(fishName))
+        {
+            activeFishes[fishName] = new List<Fish>();
+        }
     
+        activeFishes[fishName].Add(newFish);
+
+        FishSetting fishSetting = configManager.GetFishSettings(fishName);
         newFish.ApplySettings(fishSetting);
     }
 
@@ -78,8 +93,16 @@ public class SpawnManager : MonoBehaviour
         string fileName = sprite.name;
         string trashName = GetObjectName(fileName);
 
+        newTrash.SetName(trashName);
+
+        if(activeTrashes.ContainsKey(trashName))
+        {
+            activeTrashes[trashName] = new List<Trash>();
+        }
+
+        activeTrashes[trashName].Add(newTrash);
+
         TrashSetting trashSetting = configManager.GetTrashSettings(trashName);
-    
         newTrash.ApplySettings(trashSetting);
     }
 
@@ -102,6 +125,37 @@ public class SpawnManager : MonoBehaviour
         return fileName;
     }
 
+    public void RefreshAllObjects()
+    {
+        foreach (var list in activeFishes.Values)
+        {
+            foreach (Fish fish in list)
+            {
+                string fishName = fish.GetFishName();
+                FishSetting fishSetting = configManager.GetFishSettings(fishName);
+                
+                if (fishSetting != null)
+                {
+                    fish.ApplySettings(fishSetting);
+                }
+            }
+        }
+
+        foreach (var list in activeTrashes.Values)
+        {
+            foreach (Trash trash in list)
+            {
+                string trashName = trash.GetTrashName();
+                TrashSetting trashSetting = configManager.GetTrashSettings(trashName);
+
+                if (trashSetting != null)
+                {
+                    trash.ApplySettings(trashSetting);
+                }
+            }
+        }
+
+    }
 
     #region FishPoolFunction
     private Fish CreateFish()
