@@ -8,15 +8,15 @@ public class Config
 {
     public List<FishSetting> fishSettings;
     public List<TrashSetting> trashSettings;
-    public int fishSpawnCount;
-    public int trashSpawnCount;
+    public SpawnSetting spawnSetting;
+    public float objColliderSizeMultiplier;
 
     public Config()
     {
         fishSettings = new List<FishSetting>();
         trashSettings = new List<TrashSetting>();
-        fishSpawnCount = 1;
-        trashSpawnCount = 1;
+        spawnSetting = new SpawnSetting();
+        objColliderSizeMultiplier = 0.7f;
     }
 }
 
@@ -53,6 +53,23 @@ public class TrashSetting
         trashName = string.Empty;
         minSpeed = 1.0f;
         maxSpeed = 3.0f;
+    }
+}
+
+[Serializable]
+public class SpawnSetting
+{
+    public float spawnAreaWidth;
+    public float spawnAreaHeight;
+    public int maxObjectToSpawn;
+    public float spawnSpacing;
+
+    public SpawnSetting()
+    {
+        spawnAreaWidth = 30.0f;
+        spawnAreaHeight = 20.0f;
+        maxObjectToSpawn = 10;
+        spawnSpacing = 1.3f;
     }
 }
 
