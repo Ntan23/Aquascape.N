@@ -5,11 +5,15 @@ using UnityEngine.Pool;
 public class SpawnManager : MonoBehaviour
 {
     public static SpawnManager instance;
-    [SerializeField] private BoxCollider2D spawnArea; 
 
     [Header("Prefabs")]
     [SerializeField] private Fish fishPrefab;
     [SerializeField] private Trash trashPrefab;
+
+    [Header("Spawn Area / Aquarium")]
+    [SerializeField] private SpriteRenderer spawnAreaSpriteRenderer;
+    private float spawnAreaWidth;
+    private float spawnAreaHeight;
 
     private IObjectPool<Fish> fishPool;
     private IObjectPool<Trash> trashPool;
@@ -17,6 +21,7 @@ public class SpawnManager : MonoBehaviour
     private Dictionary<string, List<Fish>> activeFishes;
     private Dictionary<string, List<Trash>> activeTrashes;
 
+    private Config currentConfig;
     private GameManager gameManager;
     private ConfigManager configManager;
 
@@ -60,13 +65,18 @@ public class SpawnManager : MonoBehaviour
         
         gameManager = GameManager.instance;
         configManager = gameManager.configManager;
+
+        currentConfig = configManager.currentConfig;
+
+        RefreshSpawnArea();
     }
 
     public void SpawnFish(Sprite sprite)
     {
         Fish newFish = fishPool.Get();
+        newFish.Init();
         newFish.SetSprite(sprite);
-        newFish.transform.position = Vector3.zero;
+        newFish.transform.position = GetSafeSpawnPosition(sprite);
 
         string fileName = sprite.name;
         string fishName = GetObjectName(fileName);
@@ -87,15 +97,16 @@ public class SpawnManager : MonoBehaviour
     public void SpawnTrash(Sprite sprite)
     {
         Trash newTrash = trashPool.Get();
+        newTrash.Init();
         newTrash.SetSprite(sprite);
-        newTrash.transform.position = Vector3.zero;
+        newTrash.transform.position = GetSafeSpawnPosition(sprite);
 
         string fileName = sprite.name;
         string trashName = GetObjectName(fileName);
 
         newTrash.SetName(trashName);
 
-        if(activeTrashes.ContainsKey(trashName))
+        if (!activeTrashes.ContainsKey(trashName))
         {
             activeTrashes[trashName] = new List<Trash>();
         }
@@ -106,6 +117,36 @@ public class SpawnManager : MonoBehaviour
         newTrash.ApplySettings(trashSetting);
     }
 
+    public Vector3 GetSafeSpawnPosition(Sprite sprite)
+    {
+        float widthOffset = sprite.bounds.size.x / 2f;
+        float heightOffset = sprite.bounds.size.y / 2f;
+
+        float safeRangeX = (currentConfig.spawnSetting.spawnAreaWidth / 2f) - widthOffset;
+        float safeRangeY = (currentConfig.spawnSetting.spawnAreaHeight / 2f) - heightOffset;
+
+        Vector2 detectionSize = sprite.bounds.size * currentConfig.spawnSetting.spawnSpacing;
+
+        int maxAttempts = 15; 
+        
+        for (int i = 0; i < maxAttempts; i++)
+        {
+            float randomX = Random.Range(-safeRangeX, safeRangeX);
+            float randomY = Random.Range(-safeRangeY, safeRangeY);
+            Vector3 randomPos = new Vector3(randomX, randomY, 0);
+
+            Collider2D hit = Physics2D.OverlapBox(randomPos, detectionSize, 0f);
+
+            if (hit == null)
+            {
+                return randomPos;
+            }
+        }
+
+        Debug.LogWarning("Gagal nemu posisi aman, area mungkin terlalu penuh!");
+        return Vector3.zero;
+    }
+
     private string GetObjectName(string fileName)
     {
         if (fileName.Contains("_"))
@@ -113,16 +154,31 @@ public class SpawnManager : MonoBehaviour
             string[] parts = fileName.Split('_');
             if (parts.Length > 1)
             {
-                string category = parts[0]; 
                 string name = parts[1];
-                
-                Debug.Log($"Kategori: {category}, Nama: {name}");
                 
                 return name; 
             }
         }
         
         return fileName;
+    }
+
+    public bool IsAquariumFull()
+    {
+        int maxObjectToSpawn = currentConfig.spawnSetting.maxObjectToSpawn;
+        int currentObjCount = activeFishes.Count + activeTrashes.Count;
+
+        if (currentObjCount > maxObjectToSpawn)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public void RefreshConfig()
+    {
+        currentConfig = configManager.currentConfig;
     }
 
     public void RefreshAllObjects()
@@ -154,7 +210,16 @@ public class SpawnManager : MonoBehaviour
                 }
             }
         }
+    }
 
+    public void RefreshSpawnArea()
+    {
+        spawnAreaWidth = currentConfig.spawnSetting.spawnAreaWidth;
+        spawnAreaHeight = currentConfig.spawnSetting.spawnAreaHeight;
+
+        Vector2 spawnAreaSize = new Vector2(spawnAreaWidth, spawnAreaHeight);
+
+        spawnAreaSpriteRenderer.size = spawnAreaSize;
     }
 
     #region FishPoolFunction
