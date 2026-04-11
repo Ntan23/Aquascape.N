@@ -38,7 +38,7 @@ public class FileWatcher : MonoBehaviour
             Directory.CreateDirectory(configFolderPath);
         }
         
-        //Spawnables
+        //Spawnables 
         spawnablesFileSystemWatcher = new FileSystemWatcher();
         spawnablesFileSystemWatcher.Path = spawnablesFolderPath;
         spawnablesFileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName;
@@ -82,7 +82,12 @@ public class FileWatcher : MonoBehaviour
     {
         actionsQueue.Enqueue(() =>
         {
-            StartCoroutine(LoadTexture(e.FullPath)); 
+            bool isAquariumFull = spawnManager.IsAquariumFull();
+
+            if(!isAquariumFull)
+            {
+                StartCoroutine(LoadTexture(e.FullPath)); 
+            }
         });
     }
 
@@ -91,7 +96,9 @@ public class FileWatcher : MonoBehaviour
         actionsQueue.Enqueue(() =>
         {
             configManager.LoadConfig();
+            spawnManager.RefreshConfig();
             spawnManager.RefreshAllObjects();
+            spawnManager.RefreshSpawnArea();
         });
     }
 
@@ -103,6 +110,13 @@ public class FileWatcher : MonoBehaviour
 
             foreach (string file in files)
             {
+                bool isAquariumFull = spawnManager.IsAquariumFull();
+
+                if (isAquariumFull) 
+                {
+                    break;
+                }
+                
                 StartCoroutine(LoadTexture(file));
             }
         }
@@ -120,14 +134,21 @@ public class FileWatcher : MonoBehaviour
                 Texture2D texture = DownloadHandlerTexture.GetContent(unityWebRequest);
                 string fileName = Path.GetFileNameWithoutExtension(path);
                 
-                Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+                Sprite sprite = Sprite.Create(
+                    texture, 
+                    new Rect(0, 0, texture.width, texture.height), 
+                    new Vector2(0.5f, 0.5f),
+                    100,
+                    1,
+                    SpriteMeshType.FullRect
+                );
                 sprite.name = fileName;
 
                 string fileNameLower = fileName.ToLower();
 
                 if (fileNameLower.Contains("fish")) 
                 {
-                   spawnManager.SpawnFish(sprite);
+                spawnManager.SpawnFish(sprite);
                 }
                 else if (fileNameLower.Contains("trash")) 
                 {
