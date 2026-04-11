@@ -10,6 +10,8 @@ public class Trash : SpawnableObject<Trash>
 
         Debug.Log("Min Speed : " + trashSetting.minSpeed);
         Debug.Log("Max Speed : " + trashSetting.maxSpeed);
+
+        SetCollider();
     }
 
     public string GetTrashName()

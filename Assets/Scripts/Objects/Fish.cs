@@ -10,6 +10,8 @@ public class Fish : SpawnableObject<Fish>
 
         Debug.Log("Min Speed : " + fishSetting.minSpeed);
         Debug.Log("Max Speed : " + fishSetting.maxSpeed);
+
+        SetCollider();
     }
 
     public string GetFishName()
