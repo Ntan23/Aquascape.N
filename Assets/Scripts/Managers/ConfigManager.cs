@@ -26,18 +26,18 @@ public class FishSetting
     public string fishName;
     public float minSpeed;
     public float maxSpeed;
-    public float detectionRadius;
+    public float foodDetectionRadius;
+    public float obstacleDetectionRadius;
     public float hungerCooldown;
-    public float hungerMeter;
 
     public FishSetting()
     {
         fishName = string.Empty;
         minSpeed = 2.0f;
         maxSpeed = 5.0f;
-        detectionRadius = 5.0f;
-        hungerCooldown = 2.0f;
-        hungerMeter = 50.0f;
+        foodDetectionRadius = 10.0f;
+        obstacleDetectionRadius = 4.0f;
+        hungerCooldown = 10.0f;
     }
 }
 
