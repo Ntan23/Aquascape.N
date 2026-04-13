@@ -74,9 +74,10 @@ public class SpawnManager : MonoBehaviour
     public void SpawnFish(Sprite sprite)
     {
         Fish newFish = fishPool.Get();
-        newFish.Init();
         newFish.SetSprite(sprite);
-        newFish.transform.position = GetSafeSpawnPosition(sprite);
+
+        SpriteRenderer newFishSpriteRenderer = newFish.GetSpriteRenderer();
+        newFish.transform.position = GetSafeSpawnPosition(newFishSpriteRenderer);
 
         string fileName = sprite.name;
         string fishName = GetObjectName(fileName);
@@ -91,15 +92,16 @@ public class SpawnManager : MonoBehaviour
         activeFishes[fishName].Add(newFish);
 
         FishSetting fishSetting = configManager.GetFishSettings(fishName);
-        newFish.ApplySettings(fishSetting);
+        newFish.Init(currentConfig, fishSetting);
     }
 
     public void SpawnTrash(Sprite sprite)
     {
         Trash newTrash = trashPool.Get();
-        newTrash.Init();
         newTrash.SetSprite(sprite);
-        newTrash.transform.position = GetSafeSpawnPosition(sprite);
+
+        SpriteRenderer newTrashSpriteRenderer = newTrash.GetSpriteRenderer();
+        newTrash.transform.position = GetSafeSpawnPosition(newTrashSpriteRenderer);
 
         string fileName = sprite.name;
         string trashName = GetObjectName(fileName);
@@ -114,18 +116,18 @@ public class SpawnManager : MonoBehaviour
         activeTrashes[trashName].Add(newTrash);
 
         TrashSetting trashSetting = configManager.GetTrashSettings(trashName);
-        newTrash.ApplySettings(trashSetting);
+        newTrash.Init(currentConfig, trashSetting);
     }
 
-    public Vector3 GetSafeSpawnPosition(Sprite sprite)
+    public Vector3 GetSafeSpawnPosition(SpriteRenderer spriteRenderer)
     {
-        float widthOffset = sprite.bounds.size.x / 2f;
-        float heightOffset = sprite.bounds.size.y / 2f;
+        float widthOffset = spriteRenderer.bounds.extents.x;
+        float heightOffset = spriteRenderer.bounds.extents.y;
 
         float safeRangeX = (currentConfig.spawnSetting.spawnAreaWidth / 2f) - widthOffset;
         float safeRangeY = (currentConfig.spawnSetting.spawnAreaHeight / 2f) - heightOffset;
 
-        Vector2 detectionSize = sprite.bounds.size * currentConfig.spawnSetting.spawnSpacing;
+        Vector2 detectionSize = spriteRenderer.bounds.size * currentConfig.spawnSetting.spawnSpacing;
 
         int maxAttempts = 15; 
         
@@ -192,7 +194,7 @@ public class SpawnManager : MonoBehaviour
                 
                 if (fishSetting != null)
                 {
-                    fish.ApplySettings(fishSetting);
+                    fish.Init(currentConfig, fishSetting);
                 }
             }
         }
@@ -206,7 +208,7 @@ public class SpawnManager : MonoBehaviour
 
                 if (trashSetting != null)
                 {
-                    trash.ApplySettings(trashSetting);
+                    trash.Init(currentConfig, trashSetting);
                 }
             }
         }
