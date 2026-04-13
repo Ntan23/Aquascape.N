@@ -1,17 +1,15 @@
 using UnityEngine;
 
-public class Trash : SpawnableObject<Trash>
+public class Trash : SpawnableObject
 {
     private TrashSetting trashSetting;
 
-    public void ApplySettings(TrashSetting setting)
+    public override void Init(Config currentConfig, TrashSetting setting)
     {
         trashSetting = setting;
 
         Debug.Log("Min Speed : " + trashSetting.minSpeed);
         Debug.Log("Max Speed : " + trashSetting.maxSpeed);
-
-        SetCollider();
     }
 
     public string GetTrashName()

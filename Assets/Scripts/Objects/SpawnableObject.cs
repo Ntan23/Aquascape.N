@@ -1,25 +1,36 @@
 using UnityEngine;
 using UnityEngine.Pool;
 
-public abstract class SpawnableObject<T> : MonoBehaviour where T : class
+public abstract class SpawnableObject : MonoBehaviour 
 {
-    [SerializeField] private SpriteRenderer spriteRenderer;
-    [SerializeField] private CapsuleCollider2D objCollider;
-    private IObjectPool<T> pool;
+    [SerializeField] protected SpriteRenderer spriteRenderer;
+    [SerializeField] protected CapsuleCollider2D objCollider;
+    private IObjectPool<Fish> fishPool;
+    private IObjectPool<Trash> trashPool;
     protected string objName;
 
-    protected GameManager gameManager;
     protected Config currentConfig;
 
-    public void Init()
+    public virtual void Init(Config config,  FishSetting fishSetting)
     {
-        gameManager = GameManager.instance;
-        currentConfig = gameManager.configManager.currentConfig;
+        currentConfig = config;
+        SetCollider();
     }
 
-    public void SetPool(IObjectPool<T> pool)
+    public virtual void Init(Config config, TrashSetting fishSetting)
     {
-        this.pool = pool;
+        currentConfig = config;
+        SetCollider();
+    }
+
+    public void SetPool(IObjectPool<Fish> pool)
+    {
+        fishPool = pool;
+    }
+
+    public void SetPool(IObjectPool<Trash> pool)
+    {
+        trashPool = pool;
     }
 
     public void SetSprite(Sprite sprite)
@@ -28,6 +39,11 @@ public abstract class SpawnableObject<T> : MonoBehaviour where T : class
         {
             spriteRenderer.sprite = sprite;
         }
+    }
+
+    public SpriteRenderer GetSpriteRenderer()
+    {
+        return spriteRenderer;
     }
 
     public void SetCollider()
@@ -44,9 +60,14 @@ public abstract class SpawnableObject<T> : MonoBehaviour where T : class
         }
     }
 
-    public void ReturnToPool()
+    public void ReturnFishToPool(Fish fish)
     {
-        pool.Release(this as T);
+        fishPool.Release(fish);
+    }
+
+    public void ReturnTrashToPool(Trash trash)
+    {
+        trashPool.Release(trash);
     }
 
     public void SetName(string name)
