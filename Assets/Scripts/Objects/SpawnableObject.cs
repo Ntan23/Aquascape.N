@@ -13,14 +13,12 @@ public abstract class SpawnableObject : MonoBehaviour
 
     public virtual void Init(Config config,  FishSetting fishSetting)
     {
-        currentConfig = config;
-        SetCollider();
+       
     }
 
     public virtual void Init(Config config, TrashSetting fishSetting)
     {
-        currentConfig = config;
-        SetCollider();
+        
     }
 
     public void SetPool(IObjectPool<Fish> pool)
