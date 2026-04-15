@@ -34,7 +34,7 @@ public class FishSetting
     {
         fishName = string.Empty;
         minSpeed = 2.0f;
-        maxSpeed = 5.0f;
+        maxSpeed = 10.0f;
         foodDetectionRadius = 10.0f;
         obstacleDetectionRadius = 4.0f;
         hungerCooldown = 10.0f;
@@ -47,12 +47,20 @@ public class TrashSetting
     public string trashName;
     public float minSpeed;
     public float maxSpeed;
+    public float minSwayFrequency;
+    public float maxSwayFrequency;
+    public float minSwayAmplitude;
+    public float maxSwayAmplitude;
 
     public TrashSetting()
     {
         trashName = string.Empty;
         minSpeed = 1.0f;
-        maxSpeed = 3.0f;
+        maxSpeed = 20.0f;
+        minSwayFrequency = 2.0f;
+        maxSwayFrequency = 6.0f;
+        minSwayAmplitude = 0.5f;
+        maxSwayAmplitude = 3.0f;
     }
 }
 
