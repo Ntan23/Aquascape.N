@@ -241,6 +241,13 @@ public class SpawnManager : MonoBehaviour
     private void OnReturnFish(Fish fish)
     {
         fish.gameObject.SetActive(false);
+
+        string fishName = fish.GetFishName();
+        
+        if (activeFishes.ContainsKey(fishName))
+        {
+            activeFishes[fishName].Remove(fish);
+        }
     }
 
     private void OnDestroyFish(Fish fish)
@@ -271,6 +278,13 @@ public class SpawnManager : MonoBehaviour
     private void OnReturnTrash(Trash trash)
     {
         trash.gameObject.SetActive(false);
+
+        string trashName = trash.GetTrashName();
+        
+        if (activeTrashes.ContainsKey(trashName))
+        {
+            activeTrashes[trashName].Remove(trash);
+        }
     }
 
     private void OnDestroyTrash(Trash trash)
