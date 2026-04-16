@@ -8,6 +8,7 @@ public class Config
 {
     public List<FishSetting> fishSettings;
     public List<TrashSetting> trashSettings;
+    public FoodSetting foodSetting;
     public SpawnSetting spawnSetting;
     public float objColliderSizeMultiplier;
 
@@ -15,6 +16,7 @@ public class Config
     {
         fishSettings = new List<FishSetting>();
         trashSettings = new List<TrashSetting>();
+        foodSetting = new FoodSetting();
         spawnSetting = new SpawnSetting();
         objColliderSizeMultiplier = 0.7f;
     }
@@ -61,6 +63,23 @@ public class TrashSetting
         maxSwayFrequency = 6.0f;
         minSwayAmplitude = 0.5f;
         maxSwayAmplitude = 3.0f;
+    }
+}
+
+[Serializable]
+public class FoodSetting
+{
+    public float speed;
+    public float foodDelay;
+    public float swayFrequency;
+    public float swayAmplitude;
+
+    public FoodSetting()
+    {
+        speed = 2.0f;
+        foodDelay = 1.0f;
+        swayFrequency = 2.0f;
+        swayAmplitude = 1.0f;
     }
 }
 

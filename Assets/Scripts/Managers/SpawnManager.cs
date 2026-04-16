@@ -9,6 +9,7 @@ public class SpawnManager : MonoBehaviour
     [Header("Prefabs")]
     [SerializeField] private Fish fishPrefab;
     [SerializeField] private Trash trashPrefab;
+    [SerializeField] private Food foodPrefab;
 
     [Header("Spawn Area / Aquarium")]
     [SerializeField] private SpriteRenderer spawnAreaSpriteRenderer;
@@ -17,6 +18,7 @@ public class SpawnManager : MonoBehaviour
 
     private IObjectPool<Fish> fishPool;
     private IObjectPool<Trash> trashPool;
+    private IObjectPool<Food> foodPool;
 
     private Dictionary<string, List<Fish>> activeFishes;
     private Dictionary<string, List<Trash>> activeTrashes;
@@ -36,7 +38,6 @@ public class SpawnManager : MonoBehaviour
             Destroy(gameObject);
         }
 
-        // Setup Fish Pool
         fishPool = new ObjectPool<Fish>(
             createFunc: () => CreateFish(),
             actionOnGet: (fish) => OnGetFish(fish),
@@ -52,6 +53,16 @@ public class SpawnManager : MonoBehaviour
             actionOnGet: (trash) => OnGetTrash(trash),
             actionOnRelease: (trash) => OnReturnTrash(trash),
             actionOnDestroy: (trash) => OnDestroyTrash(trash),
+            collectionCheck: true, 
+            defaultCapacity: 5, 
+            maxSize: 50
+        );
+
+        foodPool = new ObjectPool<Food>(
+            createFunc: () => CreateFood(),
+            actionOnGet: (food) => OnGetFood(food),
+            actionOnRelease: (food) => OnReturnFood(food),
+            actionOnDestroy: (food) => OnDestroyFood(food),
             collectionCheck: true, 
             defaultCapacity: 5, 
             maxSize: 50
@@ -92,7 +103,7 @@ public class SpawnManager : MonoBehaviour
         activeFishes[fishName].Add(newFish);
 
         FishSetting fishSetting = configManager.GetFishSettings(fishName);
-        newFish.Init(currentConfig, fishSetting);
+        newFish.ApplySettings(fishSetting);
     }
 
     public void SpawnTrash(Sprite sprite)
@@ -116,7 +127,15 @@ public class SpawnManager : MonoBehaviour
         activeTrashes[trashName].Add(newTrash);
 
         TrashSetting trashSetting = configManager.GetTrashSettings(trashName);
-        newTrash.Init(currentConfig, trashSetting);
+        newTrash.ApplySettings(trashSetting);
+    }
+
+    public void SpawnFood(Vector2 pos)
+    {
+        Food newFood = foodPool.Get();
+        newFood.ApplySettings();
+
+        newFood.transform.position = pos;
     }
 
     public Vector3 GetSafeSpawnPosition(SpriteRenderer spriteRenderer)
@@ -194,7 +213,8 @@ public class SpawnManager : MonoBehaviour
                 
                 if (fishSetting != null)
                 {
-                    fish.Init(currentConfig, fishSetting);
+                    fish.Init(this, currentConfig);
+                    fish.ApplySettings(fishSetting);
                 }
             }
         }
@@ -208,7 +228,8 @@ public class SpawnManager : MonoBehaviour
 
                 if (trashSetting != null)
                 {
-                    trash.Init(currentConfig, trashSetting);
+                    trash.Init(this, currentConfig);
+                    trash.ApplySettings(trashSetting);
                 }
             }
         }
@@ -228,7 +249,7 @@ public class SpawnManager : MonoBehaviour
     private Fish CreateFish()
     {
         Fish fish = Instantiate(fishPrefab, transform);
-        fish.SetPool(fishPool);
+        fish.Init(this, currentConfig);
 
         return fish;
     }
@@ -265,7 +286,7 @@ public class SpawnManager : MonoBehaviour
     private Trash CreateTrash()
     {
         Trash trash = Instantiate(trashPrefab, transform);
-        trash.SetPool(trashPool);
+        trash.Init(this, currentConfig);
 
         return trash;
     }
@@ -295,6 +316,36 @@ public class SpawnManager : MonoBehaviour
     public void ReleaseTrash(Trash trash) 
     {
         trashPool.Release(trash);
+    }
+    #endregion
+    
+    #region FoodPoolFunction
+    private Food CreateFood()
+    {
+        Food food = Instantiate(foodPrefab, transform);
+        food.Init(this, currentConfig);
+
+        return food;
+    }
+
+    private void OnGetFood(Food food)
+    {
+        food.gameObject.SetActive(true);
+    }
+
+    private void OnReturnFood(Food food)
+    {
+        food.gameObject.SetActive(false);
+    }
+
+    private void OnDestroyFood(Food food)
+    {
+        Destroy(food.gameObject);
+    }
+
+    public void ReleaseFood(Food food) 
+    {
+        foodPool.Release(food);
     }
     #endregion
 }
