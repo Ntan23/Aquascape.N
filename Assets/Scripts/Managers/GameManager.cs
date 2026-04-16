@@ -4,6 +4,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
     public ConfigManager configManager;
+    public PlayerInput playerInput;
     
     void Awake()
     {
@@ -19,5 +20,16 @@ public class GameManager : MonoBehaviour
 
         configManager = new ConfigManager();
         configManager.Init();
+
+        playerInput = new PlayerInput();
+        playerInput.Init(this);
+    }
+
+    void Update()
+    {
+        if (playerInput != null)
+        {
+            playerInput.DoUpdate();
+        }
     }
 }
