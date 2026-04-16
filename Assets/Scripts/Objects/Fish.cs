@@ -1,11 +1,18 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Fish : SpawnableObject
 {
     private FishSetting fishSetting;
+    
+    [Header("Layer Mask")]
     [SerializeField] private LayerMask obstacleLayer;
     [SerializeField] private LayerMask foodLayer;
+
+    [Header("Hunger Meter")]
+    [SerializeField] private Canvas hungerMeterCanvas;
+    [SerializeField] private Slider hungerMeterSlider;
 
     private Vector3 targetPosition;
     private float currentSpeed;
@@ -14,23 +21,32 @@ public class Fish : SpawnableObject
     private bool isAvoiding;
     private bool isSearchingFood;
     private bool isFoundFood;
-    private bool isInitialized;
 
-    public override void Init(Config config, FishSetting setting)
+    public void ApplySettings(FishSetting setting)
     {
         fishSetting = setting;
-        currentConfig = config;
 
         SetCollider();
         
-        Debug.Log("Min Speed : " + fishSetting.minSpeed);
-        Debug.Log("Max Speed : " + fishSetting.maxSpeed);
+        // Debug.Log("Min Speed : " + fishSetting.minSpeed);
+        // Debug.Log("Max Speed : " + fishSetting.maxSpeed);
+        currentSpeed = fishSetting.minSpeed;
 
         if (!isInitialized)
         {
             PickRandomPosition();
-            currentSpeed = fishSetting.minSpeed;
             currentHungerMeter = 100;
+
+            if (spriteRenderer != null)
+            {
+                // Max = titik tengah ditambah setengah dari tinggi
+                float maxY = spriteRenderer.bounds.center.y + (spriteRenderer.bounds.size.y / 2f);
+
+                Vector3 targetPosition = hungerMeterCanvas.transform.localPosition;
+                targetPosition.y = (maxY - transform.position.y) + 0.2f;
+                hungerMeterCanvas.transform.localPosition = targetPosition;
+            }
+
             isInitialized = true;
         }
     }
@@ -48,7 +64,7 @@ public class Fish : SpawnableObject
         HandleHunger();
     }
 
-    void OnMouseDown()
+    public void ScareFish()
     {
         if (!isScared)
         {
@@ -81,18 +97,27 @@ public class Fish : SpawnableObject
             if (!isAvoiding)
             {
                 StartCoroutine(SearchNewRandomPosition());
+                return;
             }
-            return;
         }
 
         if (isSearchingFood)
         {
             Collider2D foodCollider = Physics2D.OverlapCircle(transform.position, fishSetting.foodDetectionRadius, foodLayer);
 
-            if (foodCollider != null)
+            if (foodCollider != null && foodCollider.gameObject.activeInHierarchy)
             {
                 targetPosition = foodCollider.gameObject.transform.position;
                 isFoundFood = true;
+            }
+            else
+            {
+                // Kalau makanan gk ketemu atau dh dimakan ikan lain
+                if (isFoundFood) 
+                {
+                    isFoundFood = false; 
+                    PickRandomPosition(); 
+                }
             }
         }
     }
@@ -150,6 +175,16 @@ public class Fish : SpawnableObject
                 transform.localScale = new Vector3(-1, 1, 1); 
             }
         }  
+
+        Vector3 canvasScale = hungerMeterCanvas.transform.localScale;
+        canvasScale.x = Mathf.Abs(canvasScale.x); 
+       
+        if (transform.localScale.x < 0) 
+        {
+            canvasScale.x *= -1;
+        }
+        
+        hungerMeterCanvas.transform.localScale = canvasScale;
     }
 
     public void HandleHunger()
@@ -163,6 +198,8 @@ public class Fish : SpawnableObject
                 currentHungerMeter = 0;
                 isSearchingFood = true;
             }
+
+            hungerMeterSlider.value = currentHungerMeter / 100.0f;
         }
     }
 
@@ -224,9 +261,11 @@ public class Fish : SpawnableObject
         if (collision.CompareTag("Food") && isSearchingFood)
         {
             FillHungerMeter(100);
-            PickRandomPosition();
 
-            //Perlu buat return to pool (food)
+            Food food = collision.GetComponent<Food>();
+            food.ReturnFoodToPool(food);
+
+            PickRandomPosition();
         }
     }
 }

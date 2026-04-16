@@ -5,30 +5,20 @@ public abstract class SpawnableObject : MonoBehaviour
 {
     [SerializeField] protected SpriteRenderer spriteRenderer;
     [SerializeField] protected CapsuleCollider2D objCollider;
-    private IObjectPool<Fish> fishPool;
-    private IObjectPool<Trash> trashPool;
     protected string objName;
+    protected bool isInitialized;
 
     protected Config currentConfig;
+    protected SpawnManager spawnManager;
 
-    public virtual void Init(Config config,  FishSetting fishSetting)
+    public virtual void Init(SpawnManager spawnManager, Config config)
     {
-       
-    }
-
-    public virtual void Init(Config config, TrashSetting fishSetting)
-    {
+        if (this.spawnManager == null)
+        {
+            this.spawnManager = spawnManager;
+        }
         
-    }
-
-    public void SetPool(IObjectPool<Fish> pool)
-    {
-        fishPool = pool;
-    }
-
-    public void SetPool(IObjectPool<Trash> pool)
-    {
-        trashPool = pool;
+        currentConfig = config;
     }
 
     public void SetSprite(Sprite sprite)
@@ -60,12 +50,17 @@ public abstract class SpawnableObject : MonoBehaviour
 
     public void ReturnFishToPool(Fish fish)
     {
-        fishPool.Release(fish);
+        spawnManager.ReleaseFish(fish);
     }
 
     public void ReturnTrashToPool(Trash trash)
     {
-        trashPool.Release(trash);
+        spawnManager.ReleaseTrash(trash);
+    }
+
+    public void ReturnFoodToPool(Food food)
+    {
+        spawnManager.ReleaseFood(food);
     }
 
     public void SetName(string name)

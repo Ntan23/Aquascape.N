@@ -11,13 +11,10 @@ public class Trash : SpawnableObject
     private float currentSwayAmplitude;
     private bool hasLanded;
     private bool isFloatingUp;
-    private bool isInitialized;
 
-
-    public override void Init(Config config, TrashSetting setting)
+    public void ApplySettings(TrashSetting setting)
     {
         trashSetting = setting;
-        currentConfig = config;
 
         SetCollider();
 
@@ -82,7 +79,7 @@ public class Trash : SpawnableObject
         }
     }
 
-    void OnMouseDown()
+    public void FloatTrash()
     {
         if(!isFloatingUp) 
         {
