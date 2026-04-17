@@ -5,13 +5,18 @@ public class PlayerInput
 {
     private float lastFoodTime;
     private Vector2 mousePos;
+    GameManager gameManager;
     ConfigManager configManager;
     SpawnManager spawnManager;
+    CameraManager cameraManager;
 
     public void Init(GameManager gameManager)
     {  
-        configManager = gameManager.configManager;
+        this.gameManager = gameManager;
         spawnManager = SpawnManager.instance;
+        cameraManager = CameraManager.instance;
+        
+        configManager = gameManager.configManager;
     }
 
     public void DoUpdate()
@@ -28,12 +33,28 @@ public class PlayerInput
 
             if (isInsideX && isInsideY)
             {
+                gameManager.PlayClickParticleEffect(mousePos);
                 HandleInteraction(mousePos);
             }
             else
             {
                 Debug.LogWarning("Klik di luar aquarium / spawn area , abaikan!");
             }
+        }
+
+        ///Camera
+        float scrollValue = Input.GetAxis("Mouse ScrollWheel");
+        if (scrollValue != 0)
+        { 
+            cameraManager.HandleCameraZoom(scrollValue); 
+        }
+
+        if (Input.GetMouseButton(2)) 
+        {
+            float moveX = Input.GetAxis("Mouse X") * 10.0f * Time.deltaTime;
+            float moveY = Input.GetAxis("Mouse Y") * 10.0f * Time.deltaTime;
+
+            cameraManager.HandleCameraPanningMovement(-moveX, -moveY);
         }
     }
 
