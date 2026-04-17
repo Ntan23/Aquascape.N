@@ -14,10 +14,9 @@ public class Food : SpawnableObject
         currentSpeed = foodSetting.speed;
         lowerBound = -currentConfig.spawnSetting.spawnAreaHeight / 2.0f;
         
-        hasLanded = false;
-
         if (!isInitialized)
         {
+            SetHasLanded(false);
             isInitialized = true;
         }
     }
@@ -38,8 +37,18 @@ public class Food : SpawnableObject
 
             if (transform.position.y < lowerBound + 0.4f)
             {
-                hasLanded = true;
+                SetHasLanded(true);
             }
         }
+    }
+
+    public bool GetHasLanded()
+    {
+        return hasLanded;
+    }
+
+    public void SetHasLanded(bool value)
+    {
+        hasLanded = value;
     }
 }

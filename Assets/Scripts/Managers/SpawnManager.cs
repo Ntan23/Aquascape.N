@@ -22,6 +22,7 @@ public class SpawnManager : MonoBehaviour
 
     private Dictionary<string, List<Fish>> activeFishes;
     private Dictionary<string, List<Trash>> activeTrashes;
+    private List<Food> activeFoods;
 
     private Config currentConfig;
     private GameManager gameManager;
@@ -73,6 +74,7 @@ public class SpawnManager : MonoBehaviour
     {
         activeFishes = new Dictionary<string, List<Fish>>();
         activeTrashes = new Dictionary<string, List<Trash>>();
+        activeFoods = new List<Food>();
         
         gameManager = GameManager.instance;
         configManager = gameManager.configManager;
@@ -136,6 +138,11 @@ public class SpawnManager : MonoBehaviour
         newFood.ApplySettings();
 
         newFood.transform.position = pos;
+
+        if (!activeFoods.Contains(newFood)) 
+        {
+            activeFoods.Add(newFood);
+        }
     }
 
     public Vector3 GetSafeSpawnPosition(SpriteRenderer spriteRenderer)
@@ -232,6 +239,12 @@ public class SpawnManager : MonoBehaviour
                     trash.ApplySettings(trashSetting);
                 }
             }
+        }
+
+        foreach (Food food in activeFoods)
+        {
+            food.Init(this, currentConfig);
+            food.ApplySettings();
         }
     }
 
@@ -331,6 +344,11 @@ public class SpawnManager : MonoBehaviour
     private void OnGetFood(Food food)
     {
         food.gameObject.SetActive(true);
+
+        if (food.GetHasLanded())
+        {
+            food.SetHasLanded(false);
+        }
     }
 
     private void OnReturnFood(Food food)
