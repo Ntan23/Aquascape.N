@@ -24,13 +24,13 @@ public class GameManager : MonoBehaviour
 
         configManager = new ConfigManager();
         configManager.Init();
+
+        playerInput = new PlayerInput();
+        playerInput.Init(this);
     }
 
     void Start()
     {
-        playerInput = new PlayerInput();
-        playerInput.Init(this);
-
         SetupBubbles();
     }
 
