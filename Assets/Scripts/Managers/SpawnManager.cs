@@ -211,6 +211,9 @@ public class SpawnManager : MonoBehaviour
 
     public void RefreshAllObjects()
     {
+        float halfWidth = currentConfig.spawnSetting.spawnAreaWidth / 2.0f;
+        float halfHeight = currentConfig.spawnSetting.spawnAreaHeight / 2.0f;
+
         foreach (var list in activeFishes.Values)
         {
             foreach (Fish fish in list)
@@ -222,6 +225,24 @@ public class SpawnManager : MonoBehaviour
                 {
                     fish.Init(this, currentConfig);
                     fish.ApplySettings(fishSetting);
+
+                    SpriteRenderer fishSpriteRenderer = fish.GetSpriteRenderer();
+
+                    float currentFishXAbsPos = Mathf.Abs(fish.transform.position.x);
+                    float currentFishYAbsPos = Mathf.Abs(fish.transform.position.y);
+
+                    float widthOffset = fishSpriteRenderer.bounds.extents.x;
+                    float heightOffset = fishSpriteRenderer.bounds.extents.y;
+
+                    float safeRangeX = halfWidth - widthOffset;
+                    float safeRangeY = halfHeight - heightOffset;
+
+                    if (currentFishXAbsPos >= safeRangeX || currentFishYAbsPos >= safeRangeY)
+                    {
+                        fish.transform.position = GetSafeSpawnPosition(fishSpriteRenderer);
+
+                        fish.PickRandomPosition();
+                    }
                 }
             }
         }
@@ -237,14 +258,39 @@ public class SpawnManager : MonoBehaviour
                 {
                     trash.Init(this, currentConfig);
                     trash.ApplySettings(trashSetting);
+
+                    SpriteRenderer trashSpriteRenderer = trash.GetSpriteRenderer();
+
+                    float currentTrashXAbsPos = Mathf.Abs(trash.transform.position.x);
+                    float currentTrashYAbsPos = Mathf.Abs(trash.transform.position.y);
+
+                    float widthOffset = trashSpriteRenderer.bounds.extents.x;
+                    float heightOffset = trashSpriteRenderer.bounds.extents.y;
+
+                    float safeRangeX = halfWidth - widthOffset;
+                    float safeRangeY = halfHeight - heightOffset;
+
+                    if (currentTrashXAbsPos >= safeRangeX || currentTrashYAbsPos >= safeRangeY)
+                    {
+                        trash.transform.position = ClampPosition(trash.transform.position, safeRangeX, safeRangeY);
+                    }
                 }
             }
         }
 
-        foreach (Food food in activeFoods)
+        for (int i = activeFoods.Count - 1; i >= 0; i--)
         {
+            Food food = activeFoods[i]; 
             food.Init(this, currentConfig);
             food.ApplySettings();
+
+            float currentFoodXAbsPos = Mathf.Abs(food.transform.position.x);
+            float currentFoodYAbsPos = Mathf.Abs(food.transform.position.y);
+
+            if (currentFoodXAbsPos >= halfWidth || currentFoodYAbsPos >= halfHeight)
+            {
+                ReleaseFood(food);
+            }
         }
     }
 
@@ -256,6 +302,15 @@ public class SpawnManager : MonoBehaviour
         Vector2 spawnAreaSize = new Vector2(spawnAreaWidth, spawnAreaHeight);
 
         spawnAreaSpriteRenderer.size = spawnAreaSize;
+    }
+
+    private Vector3 ClampPosition(Vector3 pos, float width, float height)
+    {
+        return new Vector3(
+            Mathf.Clamp(pos.x, -width, width),
+            Mathf.Clamp(pos.y, -height, height),
+            pos.z
+        );
     }
 
     #region FishPoolFunction
@@ -344,15 +399,13 @@ public class SpawnManager : MonoBehaviour
     private void OnGetFood(Food food)
     {
         food.gameObject.SetActive(true);
-
-        if (food.GetHasLanded())
-        {
-            food.SetHasLanded(false);
-        }
     }
 
     private void OnReturnFood(Food food)
     {
+        activeFoods.Remove(food);  
+        food.SetHasLanded(false);
+
         food.gameObject.SetActive(false);
     }
 
