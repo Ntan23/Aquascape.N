@@ -739,7 +739,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 264cbcf90148bf447a16750ffe53ae7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  cameraManager: {fileID: 0}
   bubbleParticles: {fileID: 1457815234}
   clickParticlesEffect: {fileID: 1261804285}
 --- !u!1 &1258842372
