@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerInput
 {
@@ -21,6 +22,11 @@ public class PlayerInput
 
     public void DoUpdate()
     {
+        if (EventSystem.current.IsPointerOverGameObject())
+        {
+            return; 
+        }
+        
         if (Input.GetMouseButtonDown(0))
         {
             mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition); 
