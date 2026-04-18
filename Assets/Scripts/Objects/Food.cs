@@ -42,11 +42,6 @@ public class Food : SpawnableObject
         }
     }
 
-    public bool GetHasLanded()
-    {
-        return hasLanded;
-    }
-
     public void SetHasLanded(bool value)
     {
         hasLanded = value;

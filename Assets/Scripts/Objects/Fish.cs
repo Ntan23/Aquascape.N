@@ -15,6 +15,7 @@ public class Fish : SpawnableObject
     [SerializeField] private Slider hungerMeterSlider;
 
     private Vector3 targetPosition;
+    private GameObject targetedFood;
     private float currentSpeed;
     private float currentHungerMeter;
     private bool isScared;
@@ -92,32 +93,34 @@ public class Fish : SpawnableObject
         Vector2 moveDirection = (targetPosition - transform.position).normalized;
         RaycastHit2D obstacleRaycastHit = Physics2D.Raycast(transform.position, moveDirection, fishSetting.obstacleDetectionRadius, obstacleLayer);
 
-        if (obstacleRaycastHit.collider != null)
+        if (obstacleRaycastHit.collider != null && !isAvoiding)
         {
-            if (!isAvoiding)
-            {
-                StartCoroutine(SearchNewRandomPosition());
-                return;
-            }
+            StartCoroutine(SearchNewRandomPosition());
+            return;
         }
 
         if (isSearchingFood)
         {
-            Collider2D foodCollider = Physics2D.OverlapCircle(transform.position, fishSetting.foodDetectionRadius, foodLayer);
-
-            if (foodCollider != null && foodCollider.gameObject.activeInHierarchy)
+            if (targetedFood == null || !targetedFood.activeInHierarchy)
             {
-                targetPosition = foodCollider.gameObject.transform.position;
-                isFoundFood = true;
+                Collider2D foodCollider = Physics2D.OverlapCircle(transform.position, fishSetting.foodDetectionRadius, foodLayer);
+                
+                if (foodCollider != null && foodCollider.gameObject.activeInHierarchy)
+                {
+                    targetedFood = foodCollider.gameObject;
+                    isFoundFood = true;
+                }
+                else if (isFoundFood) // Kalau tadi lagi nemu terus tiba-tiba makanannya hilang
+                {
+                    isFoundFood = false;
+                    targetedFood = null;
+                    PickRandomPosition();
+                }
             }
             else
             {
-                // Kalau makanan gk ketemu atau dh dimakan ikan lain
-                if (isFoundFood) 
-                {
-                    isFoundFood = false; 
-                    PickRandomPosition(); 
-                }
+                isFoundFood = true;
+                targetPosition = targetedFood.transform.position;
             }
         }
     }
@@ -164,7 +167,7 @@ public class Fish : SpawnableObject
     {
         float differences = targetPosition.x - transform.position.x;
 
-        if (Mathf.Abs(differences) > 0.2f)
+        if (Mathf.Abs(differences) > 0.5f)
         {
             if (differences > 0)
             {
@@ -175,7 +178,7 @@ public class Fish : SpawnableObject
                 transform.localScale = new Vector3(-1, 1, 1); 
             }
         }  
-
+        
         Vector3 canvasScale = hungerMeterCanvas.transform.localScale;
         canvasScale.x = Mathf.Abs(canvasScale.x); 
        
@@ -210,10 +213,11 @@ public class Fish : SpawnableObject
         if (currentHungerMeter >= 100)
         {
             currentHungerMeter = 100;
-            isSearchingFood = false;
-            isFoundFood = false;
-            PickRandomPosition();
         }
+
+        isSearchingFood = false;
+        isFoundFood = false;
+        targetedFood = null;
     }
 
     public void PickRandomPosition()
@@ -260,11 +264,10 @@ public class Fish : SpawnableObject
     {
         if (collision.CompareTag("Food") && isSearchingFood)
         {
-            FillHungerMeter(100);
-
             Food food = collision.GetComponent<Food>();
             food.ReturnFoodToPool(food);
 
+            FillHungerMeter(100);
             PickRandomPosition();
         }
     }
