@@ -1,6 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.UI;
 
 public class SpawnManager : MonoBehaviour
 {
@@ -23,6 +26,11 @@ public class SpawnManager : MonoBehaviour
     private Dictionary<string, List<Fish>> activeFishes;
     private Dictionary<string, List<Trash>> activeTrashes;
     private List<Food> activeFoods;
+
+    private List<Sprite> availableSprites;
+
+    [Header("Button")]
+    [SerializeField] private Button spawnRandomButton;
 
     private Config currentConfig;
     private GameManager gameManager;
@@ -75,11 +83,16 @@ public class SpawnManager : MonoBehaviour
         activeFishes = new Dictionary<string, List<Fish>>();
         activeTrashes = new Dictionary<string, List<Trash>>();
         activeFoods = new List<Food>();
+
+        availableSprites = new List<Sprite>();
         
         gameManager = GameManager.instance;
         configManager = gameManager.configManager;
 
         currentConfig = configManager.currentConfig;
+
+        spawnRandomButton.onClick.RemoveAllListeners();
+        spawnRandomButton.onClick.AddListener(OnSpawnRandomButtonClicked);
 
         RefreshSpawnArea();
     }
@@ -88,6 +101,11 @@ public class SpawnManager : MonoBehaviour
     {
         Fish newFish = fishPool.Get();
         newFish.SetSprite(sprite);
+
+        if (!availableSprites.Contains(sprite))
+        {
+            availableSprites.Add(sprite);
+        }
 
         SpriteRenderer newFishSpriteRenderer = newFish.GetSpriteRenderer();
         newFish.transform.position = GetSafeSpawnPosition(newFishSpriteRenderer);
@@ -112,6 +130,11 @@ public class SpawnManager : MonoBehaviour
     {
         Trash newTrash = trashPool.Get();
         newTrash.SetSprite(sprite);
+
+        if (!availableSprites.Contains(sprite))
+        {
+            availableSprites.Add(sprite);
+        }
 
         SpriteRenderer newTrashSpriteRenderer = newTrash.GetSpriteRenderer();
         newTrash.transform.position = GetSafeSpawnPosition(newTrashSpriteRenderer);
@@ -142,6 +165,44 @@ public class SpawnManager : MonoBehaviour
         if (!activeFoods.Contains(newFood)) 
         {
             activeFoods.Add(newFood);
+        }
+    }
+
+    public void SpawnRandomObject()
+    {
+        int availableSpritesCount = availableSprites.Count;
+        
+        if (availableSpritesCount > 0)
+        {
+            int randomIndex = Random.Range(0, availableSpritesCount);
+     
+            Sprite randomSprite = availableSprites[randomIndex];
+            string spriteName = randomSprite.name.ToLower();
+
+            if (spriteName.StartsWith("fish_"))
+            {
+                SpawnFish(randomSprite);
+            }
+            else if (spriteName.StartsWith("trash_"))
+            {
+                SpawnTrash(randomSprite);
+            }
+        }
+    }
+
+    private IEnumerator SpawnRandomCooldownRoutine()
+    {
+        spawnRandomButton.interactable = false;
+        yield return new WaitForSeconds(1.0f);
+        spawnRandomButton.interactable = true;
+    }
+
+    private void OnSpawnRandomButtonClicked()
+    {
+        if (!IsAquariumFull())
+        {
+            SpawnRandomObject();
+            StartCoroutine(SpawnRandomCooldownRoutine());
         }
     }
 
@@ -194,9 +255,13 @@ public class SpawnManager : MonoBehaviour
     public bool IsAquariumFull()
     {
         int maxObjectToSpawn = currentConfig.spawnSetting.maxObjectToSpawn;
-        int currentObjCount = activeFishes.Count + activeTrashes.Count;
+        
+        int fishCount = activeFishes.Values.Sum(list => list.Count);
+        int trashCount = activeTrashes.Values.Sum(list => list.Count);
 
-        if (currentObjCount > maxObjectToSpawn)
+        int totalCount = fishCount + trashCount;
+
+        if (totalCount >= maxObjectToSpawn)
         {
             return true;
         }
@@ -311,6 +376,16 @@ public class SpawnManager : MonoBehaviour
             Mathf.Clamp(pos.y, -height, height),
             pos.z
         );
+    }
+
+    public void DeleteSprites(string spriteName)
+    {
+        Sprite sprite = availableSprites.FirstOrDefault(sprite => sprite.name == spriteName);
+
+        if (sprite != null)
+        {
+            availableSprites.Remove(sprite);
+        }
     }
 
     #region FishPoolFunction

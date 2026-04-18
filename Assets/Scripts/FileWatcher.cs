@@ -48,6 +48,7 @@ public class FileWatcher : MonoBehaviour
         spawnablesFileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName;
         spawnablesFileSystemWatcher.Filter = "*.png"; 
         spawnablesFileSystemWatcher.Created += OnSpawnablesFileCreated;
+        spawnablesFileSystemWatcher.Deleted += OnSpawnablesFileDeleted;
         spawnablesFileSystemWatcher.EnableRaisingEvents = true;
 
         //Config
@@ -92,6 +93,16 @@ public class FileWatcher : MonoBehaviour
             {
                 StartCoroutine(LoadTexture(e.FullPath)); 
             }
+        });
+    }
+
+    private void OnSpawnablesFileDeleted(object sender, FileSystemEventArgs e)
+    {
+        actionsQueue.Enqueue(() =>
+        {
+            string fileName = Path.GetFileNameWithoutExtension(e.Name);
+
+            spawnManager.DeleteSprites(fileName);
         });
     }
 
@@ -152,11 +163,11 @@ public class FileWatcher : MonoBehaviour
 
                 string fileNameLower = fileName.ToLower();
 
-                if (fileNameLower.Contains("fish")) 
+                if (fileNameLower.StartsWith("fish_")) 
                 {
-                spawnManager.SpawnFish(sprite);
+                    spawnManager.SpawnFish(sprite);
                 }
-                else if (fileNameLower.Contains("trash")) 
+                else if (fileNameLower.StartsWith("trash_")) 
                 {
                     spawnManager.SpawnTrash(sprite);
                 }
