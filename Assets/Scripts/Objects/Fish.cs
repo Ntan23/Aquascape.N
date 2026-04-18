@@ -229,7 +229,7 @@ public class Fish : SpawnableObject
         float safeRangeY = (currentConfig.spawnSetting.spawnAreaHeight / 2f) - heightOffset;
 
         float randomX = Random.Range(-safeRangeX, safeRangeX);
-        float randomY = Random.Range(-safeRangeY,safeRangeY);
+        float randomY = Random.Range(-safeRangeY, safeRangeY);
 
         targetPosition = new Vector3(randomX, randomY, 0);
     }
@@ -262,13 +262,18 @@ public class Fish : SpawnableObject
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Food") && isSearchingFood)
+        if (collision.CompareTag("Food") && isSearchingFood && isFoundFood)
         {
             Food food = collision.GetComponent<Food>();
-            food.ReturnFoodToPool(food);
+            
+            if (food != null && food.gameObject.activeInHierarchy) 
+            {
+                food.ReturnFoodToPool(food);
 
-            FillHungerMeter(100);
-            PickRandomPosition();
+                FillHungerMeter(100);
+                
+                PickRandomPosition();
+            }
         }
     }
 }
