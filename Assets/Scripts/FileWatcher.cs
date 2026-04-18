@@ -15,7 +15,9 @@ public class FileWatcher : MonoBehaviour
     private FileSystemWatcher configFileSystemWatcher;
 
     private SpawnManager spawnManager;
+    private GameManager gameManager;
     private ConfigManager configManager;
+    private CameraManager cameraManager;
 
     void Start() 
     {
@@ -24,7 +26,9 @@ public class FileWatcher : MonoBehaviour
         configFolderPath = Path.Combine(Application.dataPath, "..");
 
         spawnManager = SpawnManager.instance;
-        configManager = GameManager.instance.configManager;
+        gameManager = GameManager.instance;
+        configManager = gameManager.configManager;
+        cameraManager = CameraManager.instance;
 
         LoadFiles();
         
@@ -96,6 +100,8 @@ public class FileWatcher : MonoBehaviour
         actionsQueue.Enqueue(() =>
         {
             configManager.LoadConfig();
+            cameraManager.RefreshSetting();
+            gameManager.SetupBubbles();
             spawnManager.RefreshConfig();
             spawnManager.RefreshAllObjects();
             spawnManager.RefreshSpawnArea();
