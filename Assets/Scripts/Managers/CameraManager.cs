@@ -104,5 +104,12 @@ public class CameraManager : MonoBehaviour
         currentConfig = gameManager.configManager.currentConfig;
 
         maxZoom = currentConfig.spawnSetting.spawnAreaHeight / 2.0f;
+
+        if (cam.orthographicSize > maxZoom)
+        {
+            cam.orthographicSize = maxZoom;
+        }
+        
+        ClampCameraPosition();
     }
 }
