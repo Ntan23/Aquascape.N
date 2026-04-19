@@ -1,13 +1,19 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
     public ConfigManager configManager;
     public PlayerInput playerInput;
+    private AudioManager audioManager;
 
     [Header("Particle Effects")]
     [SerializeField] private ParticleSystem clickParticlesEffect;
+
+    [Header("UI")]
+    [SerializeField] private Button mainMenuButton;
     
     void Awake()
     {
@@ -28,6 +34,15 @@ public class GameManager : MonoBehaviour
         playerInput.Init(this);
     }
 
+    void Start()
+    {
+        audioManager = AudioManager.instance;
+
+        audioManager.PlaySFX("BubblesInWater");
+
+        mainMenuButton.onClick.AddListener(OnClickMainMenu);
+    }
+
     void Update()
     {
         if (playerInput != null)
@@ -41,5 +56,10 @@ public class GameManager : MonoBehaviour
         clickParticlesEffect.Stop();
         clickParticlesEffect.transform.position = position;
         clickParticlesEffect.Play();
+    }
+
+    private void OnClickMainMenu()
+    {
+        SceneManager.LoadScene(0);
     }
 }
