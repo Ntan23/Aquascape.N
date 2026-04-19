@@ -60,6 +60,7 @@ public class GameManager : MonoBehaviour
 
     private void OnClickMainMenu()
     {
+        audioManager.StopSFX("BubblesInWater");
         SceneManager.LoadScene(0);
     }
 }
