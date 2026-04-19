@@ -1,4 +1,4 @@
-# Aquascape.N 
+# 🐟 Aquascape.N 🐟
 
 A modular aquarium simulation built in Unity 6000.3.12f1, featuring dynamic fish AI, interactive environment objects, and automated configuration management.
 
@@ -21,6 +21,11 @@ A modular aquarium simulation built in Unity 6000.3.12f1, featuring dynamic fish
 
 * **Dynamic Sprite Loading:** Implemented a system to load textures directly from external folders, allowing for easy asset customization without rebuilding.
 * **Performance:** Implemented Object Pooling for spawnables (Fish, Trash and Food).
+
+## 🤖 Artificial Intelligence Disclosure
+
+* **Gemini 3 Flash (Large Language Model):** Used as a technical assistant for brainstorming system architecture, optimizing math logic (camera zooming/panning), and structuring documentation.
+* **Gemini 3 Flash Image (Nano Banana 2):** Used to generate the static background texture for the aquarium environment.
 
 ## 📜 Credits & Assets
 
