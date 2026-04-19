@@ -10,6 +10,7 @@ public abstract class SpawnableObject : MonoBehaviour
 
     protected Config currentConfig;
     protected SpawnManager spawnManager;
+    protected AudioManager audioManager;
 
     public virtual void Init(SpawnManager spawnManager, Config config)
     {
@@ -18,6 +19,7 @@ public abstract class SpawnableObject : MonoBehaviour
             this.spawnManager = spawnManager;
         }
         
+        audioManager = AudioManager.instance;
         currentConfig = config;
     }
 

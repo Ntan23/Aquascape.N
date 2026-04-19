@@ -85,6 +85,7 @@ public class Trash : SpawnableObject
         {
             isFloatingUp = true;
             objCollider.isTrigger = true;
+            audioManager.PlaySFX("RisingBubblePop");
         }
     }
 

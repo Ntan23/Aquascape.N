@@ -7,6 +7,7 @@ public class PlayerInput
     private float lastFoodTime;
     private Vector2 mousePos;
     GameManager gameManager;
+    AudioManager audioManager;
     ConfigManager configManager;
     SpawnManager spawnManager;
     CameraManager cameraManager;
@@ -16,6 +17,7 @@ public class PlayerInput
         this.gameManager = gameManager;
         spawnManager = SpawnManager.instance;
         cameraManager = CameraManager.instance;
+        audioManager = AudioManager.instance;
         
         configManager = gameManager.configManager;
     }
@@ -40,6 +42,7 @@ public class PlayerInput
             if (isInsideX && isInsideY)
             {
                 gameManager.PlayClickParticleEffect(mousePos);
+                audioManager.PlaySFX("BubblePop");
                 HandleInteraction(mousePos);
             }
             else
