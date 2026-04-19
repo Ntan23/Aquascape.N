@@ -57,8 +57,10 @@ public class PlayerInput
 
         if (Input.GetMouseButton(2)) 
         {
-            float moveX = Input.GetAxis("Mouse X") * 10.0f * Time.deltaTime;
-            float moveY = Input.GetAxis("Mouse Y") * 10.0f * Time.deltaTime;
+            float camPanningSpeed = configManager.currentConfig.cameraSetting.panningSpeed;
+
+            float moveX = Input.GetAxis("Mouse X") * camPanningSpeed * Time.deltaTime;
+            float moveY = Input.GetAxis("Mouse Y") * camPanningSpeed * Time.deltaTime;
 
             cameraManager.HandleCameraPanningMovement(-moveX, -moveY);
         }

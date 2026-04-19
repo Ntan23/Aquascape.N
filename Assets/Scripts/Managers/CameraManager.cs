@@ -18,7 +18,7 @@ public class CameraManager : MonoBehaviour
 
     private Camera cam;
     private float targetZoom;
-    private float zoomSpeed = 5.0f;
+    private float zoomSpeed;
     private float lerpSpeed = 10.0f;
     private float minZoom = 10.0f; 
     private float maxZoom;
@@ -47,6 +47,8 @@ public class CameraManager : MonoBehaviour
 
     public void HandleCameraZoom(float scrollValue)
     {
+        zoomSpeed = currentConfig.cameraSetting.zoomSpeed;
+
         targetZoom -= scrollValue * zoomSpeed;
         targetZoom = Mathf.Clamp(targetZoom, minZoom, maxZoom);
 

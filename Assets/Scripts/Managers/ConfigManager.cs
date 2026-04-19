@@ -10,6 +10,7 @@ public class Config
     public List<TrashSetting> trashSettings;
     public FoodSetting foodSetting;
     public SpawnSetting spawnSetting;
+    public CameraSetting cameraSetting;
     public float objColliderSizeMultiplier;
 
     public Config()
@@ -18,6 +19,7 @@ public class Config
         trashSettings = new List<TrashSetting>();
         foodSetting = new FoodSetting();
         spawnSetting = new SpawnSetting();
+        cameraSetting = new CameraSetting();
         objColliderSizeMultiplier = 0.7f;
     }
 }
@@ -93,10 +95,23 @@ public class SpawnSetting
 
     public SpawnSetting()
     {
-        spawnAreaWidth = 30.0f;
-        spawnAreaHeight = 20.0f;
+        spawnAreaWidth = 50.0f;
+        spawnAreaHeight = 30.0f;
         maxObjectToSpawn = 10;
         spawnSpacing = 1.3f;
+    }
+}
+
+[Serializable]
+public class CameraSetting
+{
+    public float zoomSpeed;
+    public float panningSpeed;
+
+    public CameraSetting()
+    {
+        zoomSpeed = 10.0f;
+        panningSpeed = 10.0f;
     }
 }
 
