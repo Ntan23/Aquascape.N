@@ -69,6 +69,7 @@ public class Fish : SpawnableObject
     {
         if (!isScared)
         {
+            audioManager.PlaySFX("FishRunAway");
             StartCoroutine(Scare());
         }
     }
@@ -90,15 +91,27 @@ public class Fish : SpawnableObject
 
     public void CheckSurrondings()
     {
+        //Obstacle
+        float angle = 30f; 
+        float obstacleDetectionRadius = fishSetting.obstacleDetectionRadius;
+        
         Vector2 moveDirection = (targetPosition - transform.position).normalized;
-        RaycastHit2D obstacleRaycastHit = Physics2D.Raycast(transform.position, moveDirection, fishSetting.obstacleDetectionRadius, obstacleLayer);
+        Vector2 upperDirection = Quaternion.Euler(0, 0, angle) * moveDirection;
+        Vector2 lowerDirection = Quaternion.Euler(0, 0, -angle) * moveDirection;
 
-        if (obstacleRaycastHit.collider != null && !isAvoiding)
+        RaycastHit2D center = Physics2D.Raycast(transform.position, moveDirection, obstacleDetectionRadius, obstacleLayer);
+        RaycastHit2D upper = Physics2D.Raycast(transform.position, upperDirection, obstacleDetectionRadius, obstacleLayer);
+        RaycastHit2D lower = Physics2D.Raycast(transform.position, lowerDirection, obstacleDetectionRadius, obstacleLayer);
+
+        if (center.collider != null || upper.collider != null || lower.collider != null)
         {
-            StartCoroutine(SearchNewRandomPosition());
-            return;
+            if (!isAvoiding)
+            {
+                StartCoroutine(SearchNewRandomPosition());
+            }
         }
 
+        //Food
         if (isSearchingFood)
         {
             if (targetedFood == null || !targetedFood.activeInHierarchy)
@@ -202,7 +215,7 @@ public class Fish : SpawnableObject
                 isSearchingFood = true;
             }
 
-            hungerMeterSlider.value = currentHungerMeter / 100.0f;
+            hungerMeterSlider.value = currentHungerMeter;
         }
     }
 
@@ -228,10 +241,27 @@ public class Fish : SpawnableObject
         float safeRangeX = (currentConfig.spawnSetting.spawnAreaWidth / 2f) - widthOffset;
         float safeRangeY = (currentConfig.spawnSetting.spawnAreaHeight / 2f) - heightOffset;
 
-        float randomX = Random.Range(-safeRangeX, safeRangeX);
-        float randomY = Random.Range(-safeRangeY, safeRangeY);
+        Vector3 potentialTarget;
+        int maxAttempts = 10;
+        int attempts = 0;
 
-        targetPosition = new Vector3(randomX, randomY, 0);
+        do
+        {
+            float randomX = Random.Range(-safeRangeX, safeRangeX);
+            float randomY = Random.Range(-safeRangeY, safeRangeY);
+            potentialTarget = new Vector3(randomX, randomY, 0);
+
+            Collider2D hit = Physics2D.OverlapCircle(potentialTarget, widthOffset, obstacleLayer);
+            
+            if (hit == null) 
+            {
+                break;
+            } 
+            
+            attempts++;
+        } while (attempts < maxAttempts);
+
+        targetPosition = potentialTarget;
     }
 
     public string GetFishName()
@@ -253,14 +283,30 @@ public class Fish : SpawnableObject
 
         //Obstacle
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, fishSetting.obstacleDetectionRadius);
+        float angle = 30f;
+        float range = fishSetting.obstacleDetectionRadius;
+        
+        Vector2 pos = transform.position;
+        Vector2 moveDirection = (targetPosition - (Vector3)pos).normalized;
+        
+        if (moveDirection == Vector2.zero)
+        {
+            moveDirection = transform.right; 
+        } 
+
+        Vector2 upperDirection = Quaternion.Euler(0, 0, angle) * moveDirection;
+        Vector2 lowerDirection = Quaternion.Euler(0, 0, -angle) * moveDirection;
+
+        Gizmos.DrawLine(pos, pos + moveDirection * range);      
+        Gizmos.DrawLine(pos, pos + upperDirection * range);      
+        Gizmos.DrawLine(pos, pos + lowerDirection * range);
 
         //Food
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, fishSetting.foodDetectionRadius);
     }
 
-    void OnTriggerEnter2D(Collider2D collision)
+    void OnTriggerStay2D(Collider2D collision)
     {
         if (collision.CompareTag("Food") && isSearchingFood && isFoundFood)
         {
@@ -268,10 +314,9 @@ public class Fish : SpawnableObject
             
             if (food != null && food.gameObject.activeInHierarchy) 
             {
+                audioManager.PlaySFX("Eat");
                 food.ReturnFoodToPool(food);
-
                 FillHungerMeter(100);
-                
                 PickRandomPosition();
             }
         }
