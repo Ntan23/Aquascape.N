@@ -112,7 +112,6 @@ public class FileWatcher : MonoBehaviour
         {
             configManager.LoadConfig();
             cameraManager.RefreshSetting();
-            gameManager.SetupBubbles();
             spawnManager.RefreshConfig();
             spawnManager.RefreshAllObjects();
             spawnManager.RefreshSpawnArea();
